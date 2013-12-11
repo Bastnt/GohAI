@@ -3,7 +3,7 @@
 
 class Intersection {
 public :
-	int _x, _y;
+	int x_, y_;
 
 	Intersection(int x = 0, int y = 0);
 

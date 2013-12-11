@@ -2,6 +2,8 @@
 
 using namespace std;
 
+const float Go::C = 0.3;
+
 Go::Go () {
 	hash = 0;
 	nbCoupsJoues = 0;
@@ -32,21 +34,21 @@ void Go::initHash () {
 }
 
 bool Go::coupLegal (Intersection inter, int couleur) {
-	if ((inter._x == 0) && (inter._y == 0))
+	if ((inter.x_ == 0) && (inter.y_ == 0))
 		return true;
 
-	if (goban [inter._x] [inter._y] != Vide)
+	if (goban [inter.x_] [inter.y_] != Vide)
 		return false;
 
 	for (int i = 0; i < 4; i++) {
 		Intersection voisine = inter.voisine (i);
-		if (goban [voisine._x] [voisine._y] == Vide)
+		if (goban [voisine.x_] [voisine.y_] == Vide)
 			return true;
 	}
 
 	for (int i = 0; i < 4; i++) {
 		Intersection voisine = inter.voisine (i);
-		if (goban [voisine._x] [voisine._y] == couleur)
+		if (goban [voisine.x_] [voisine.y_] == couleur)
 			if (minLib (voisine, 2) > 1)
 				return true;
 	}
@@ -61,18 +63,18 @@ bool Go::coupLegal (Intersection inter, int couleur) {
 
 unsigned long long Go::hashSiJoue (Intersection inter, int couleur) {
 	unsigned long long h = hash;
-	int adversaire = Noir;
-	if (couleur == Noir)
+	int adversaire = Case::Noir;
+	if (couleur == Case::Noir)
 		adversaire = Blanc;
 
 	dejavu2.init ();
 	dejavu2.marque (inter);
-	h ^= HashArray [couleur] [inter._x] [inter._y];
+	h ^= HashArray [couleur] [inter.x_] [inter.y_];
 	h ^= HashTurn;
 	for (int i = 0; i < 4; i++) {
 		Intersection voisine = inter.voisine (i);
 		if (!dejavu2.marquee (voisine)) {
-			if (goban [voisine._x] [voisine._y] == adversaire)
+			if (goban [voisine.x_] [voisine.y_] == adversaire)
 				if (minLib (voisine, 2) == 1) {
 					stack<Intersection> st;
 					dejavu2.marque (voisine);
@@ -80,10 +82,10 @@ unsigned long long Go::hashSiJoue (Intersection inter, int couleur) {
 					while (!st.empty ()) {
 						Intersection courante = st.top ();
 						st.pop ();
-						h ^= HashArray [goban [voisine._x] [voisine._y]] [courante._x] [courante._y];
+						h ^= HashArray [goban [voisine.x_] [voisine.y_]] [courante.x_] [courante.y_];
 						for (int j = 0; j < 4; j++) {
 							Intersection pierre = courante.voisine (j);
-							if (goban [pierre._x] [pierre._y] == adversaire)
+							if (goban [pierre.x_] [pierre.y_] == adversaire)
 								if (!dejavu2.marquee (pierre)) {
 									dejavu2.marque (pierre);
 									st.push (pierre);
@@ -98,7 +100,7 @@ unsigned long long Go::hashSiJoue (Intersection inter, int couleur) {
 
 int Go::minLib (Intersection inter, int min) {
 	stack<Intersection> st;
-	int compteur = 0, couleur = goban [inter._x] [inter._y];
+	int compteur = 0, couleur = goban [inter.x_] [inter.y_];
 
 	dejavu.init ();
 	dejavu.marque (inter);
@@ -110,12 +112,12 @@ int Go::minLib (Intersection inter, int min) {
 			Intersection voisine = inter.voisine (i);
 			if (!dejavu.marquee (voisine)) {
 				dejavu.marque (voisine);
-				if (goban [voisine._x] [voisine._y] == Vide) {
+				if (goban [voisine.x_] [voisine.y_] == Vide) {
 					compteur++;
 					if (compteur >= min)
 						return compteur;
 				}
-				else if (goban [voisine._x] [voisine._y] == couleur)
+				else if (goban [voisine.x_] [voisine.y_] == couleur)
 					st.push (voisine);
 			}
 		}
@@ -127,7 +129,7 @@ int Go::minLibIfPlay (Intersection intersection, int couleur, int min) {
 	stack<Intersection> st;
 	int compteur = 0;
 
-	if (goban [intersection._x] [intersection._y] == Vide) {
+	if (goban [intersection.x_] [intersection.y_] == Vide) {
 		dejavu2.init ();
 		dejavu2.marque (intersection);
 		st.push (intersection);
@@ -138,12 +140,12 @@ int Go::minLibIfPlay (Intersection intersection, int couleur, int min) {
 				Intersection voisine = inter.voisine (i);
 				if (!dejavu2.marquee (voisine)) {
 					dejavu2.marque (voisine);
-					if (goban [voisine._x] [voisine._y] == Vide) {
+					if (goban [voisine.x_] [voisine.y_] == Vide) {
 						compteur++;
 						if (compteur >= min)
 							return compteur;
 					}
-					if (goban [voisine._x] [voisine._y] == couleur)
+					if (goban [voisine.x_] [voisine.y_] == couleur)
 						st.push (voisine);
 				}
 			}
@@ -153,7 +155,7 @@ int Go::minLibIfPlay (Intersection intersection, int couleur, int min) {
 			adversaire = Blanc;
 		for (int i = 0; i < 4; i++) {
 			Intersection voisine = intersection.voisine (i);
-			if (goban [voisine._x] [voisine._y] == adversaire)
+			if (goban [voisine.x_] [voisine.y_] == adversaire)
 				if (minLib (voisine, 2) == 1) {
 					compteur++;
 					if (compteur >= min)
@@ -169,7 +171,7 @@ void Go::joue (Intersection inter, int couleur) {
 	moves [nbCoupsJoues] = inter;
 	hash ^= HashTurn;
 
-	if (inter._x != 0) {
+	if (inter.x_ != 0) {
 		posePierre (inter, couleur);
 		enlevePrisonniers (inter, couleur);
 	}
@@ -178,8 +180,8 @@ void Go::joue (Intersection inter, int couleur) {
 }
 
 void Go::posePierre (Intersection inter, int couleur) {
-	goban [inter._x] [inter._y] = couleur;
-	hash ^= HashArray [couleur] [inter._x] [inter._y];
+	goban [inter.x_] [inter.y_] = couleur;
+	hash ^= HashArray [couleur] [inter.x_] [inter.y_];
 }
 
 void Go::enlevePrisonniers (Intersection inter, int couleur) {
@@ -189,48 +191,48 @@ void Go::enlevePrisonniers (Intersection inter, int couleur) {
 		adversaire = Blanc;
 	for (int i = 0; i < 4; i++) {
 		Intersection voisine = inter.voisine (i);
-		if ((goban [voisine._x] [voisine._y] == adversaire))
+		if ((goban [voisine.x_] [voisine.y_] == adversaire))
 			if (minLib (voisine, 1) == 0)
 				st.push (voisine);
 	}
 	while (!st.empty ()) {
 		Intersection voisine = st.top ();
 		st.pop ();
-		if ((goban [voisine._x] [voisine._y] == adversaire))
+		if ((goban [voisine.x_] [voisine.y_] == adversaire))
 			enleveChaine (voisine);
 	}
 }
 
 void Go::enleveChaine (Intersection intersection) {
 	stack<Intersection> st;
-	int couleur = goban [intersection._x] [intersection._y];
+	int couleur = goban [intersection.x_] [intersection.y_];
 
 	st.push (intersection);
 	while (!st.empty ()) {
 		Intersection inter = st.top ();
 		st.pop ();
-		hash ^= HashArray [couleur] [inter._x] [inter._y];
-		goban [inter._x] [inter._y] = Vide;
+		hash ^= HashArray [couleur] [inter.x_] [inter.y_];
+		goban [inter.x_] [inter.y_] = Vide;
 		for (int i = 0; i < 4; i++) {
 			Intersection voisine = inter.voisine (i);
-			if ((goban [voisine._x] [voisine._y] == couleur))
+			if ((goban [voisine.x_] [voisine.y_] == couleur))
 				st.push (voisine);
 		}
 	}
 }
 
 bool Go::entouree (Intersection intersection, int couleur) {
-	if (goban [intersection._x] [intersection._y] != Vide)
+	if (goban [intersection.x_] [intersection.y_] != Vide)
 		return false;
 	for (int i = 0; i < 4; i++) {
 		Intersection voisine = intersection.voisine (i);
-		if ((goban [voisine._x] [voisine._y] != couleur) &&
-			(goban [voisine._x] [voisine._y] != Exterieur))
+		if ((goban [voisine.x_] [voisine.y_] != couleur) &&
+			(goban [voisine.x_] [voisine.y_] != Exterieur))
 			return false;
 	}
 	for (int i = 0; i < 4; i++) {
 		Intersection voisine = intersection.voisine (i);
-		if ((goban [voisine._x] [voisine._y] == couleur))
+		if ((goban [voisine.x_] [voisine.y_] == couleur))
 			if (minLib (voisine, 2) == 1)
 				return false;
 	}
@@ -238,14 +240,14 @@ bool Go::entouree (Intersection intersection, int couleur) {
 }
 
 bool Go::protegee (Intersection inter, int couleur, bool & bord) {
-	if (goban [inter._x] [inter._y] == Exterieur) {
+	if (goban [inter.x_] [inter.y_] == Exterieur) {
 		bord = true;
 		return true;
 	}
-	if (goban [inter._x] [inter._y] == Vide)
+	if (goban [inter.x_] [inter.y_] == Vide)
 		if (entouree (inter, couleur))
 			return true;
-	if (goban [inter._x] [inter._y] == couleur)
+	if (goban [inter.x_] [inter.y_] == couleur)
 		return true;
 	return false;
 }
@@ -301,7 +303,7 @@ void Go::calculeScores () {
 
 bool Go::gameOver () {
 	int last = nbCoupsJoues - 1, nbPass = 0;
-	while ((last > 0) && (moves [last]._x == 0)) {
+	while ((last > 0) && (moves [last].x_ == 0)) {
 		last--;
 		nbPass++;
 	}
@@ -337,8 +339,8 @@ Intersection Go::choisirUnCoup (int couleur) {
 					}
 				}
 
-				nbUrgences -= urgence [inter._x] [inter._y];
-				urgence [inter._x] [inter._y] = 0;
+				nbUrgences -= urgence [inter.x_] [inter.y_];
+				urgence [inter.x_] [inter.y_] = 0;
 	}
 	while (entouree (inter, couleur) || 
 		!coupLegal (inter, couleur));
@@ -360,4 +362,50 @@ void Go::playout (int couleur) {
 			couleur = Noir;
 	}
 	calculeScores ();
+}
+
+void Go::montecarloAlgorithm () {
+	/*
+	Selection: starting from root R, select successive child nodes down to a leaf node L. The section below says more about a way of choosing child nodes that lets the game tree expand towards most promising moves, which is the essence of MCTS.
+	Expansion: unless L ends the game, create none, one or more child nodes of it and choose from them node C. If none child was created, start simulation from L.
+	Simulation: play a random playout from node C.
+	Backpropagation:using the result of the playout, update information in the nodes on the path from C to R.
+	*/
+
+	//Selection
+	Node bestChild = root;
+	selectBestChild(root, root.getScore(), bestChild);
+		
+	//Expansion
+	setKodomo(bestChild);
+
+	//Simulation
+	//goban.randomPlayout();
+
+	//Backpropaging
+	//goban.backPropagation();
+}
+
+int Go::selectBestChild(Node& explored, int max_score, Node& best) {
+	if(explored.isLeaf()) {
+		if(explored.getScore() > max_score) {
+			best=explored;
+			return explored.getScore();
+		}
+		return max_score;
+	}
+	else {
+		int max_parcoured = max_score;
+		for(int i = 0, length = explored.kodomo_.size(); i<length; ++i) {
+			int new_max = selectBestChild((*(explored.kodomo_[i])), max_parcoured, best);
+			if(new_max > max_parcoured) {
+				max_parcoured = new_max;
+				best = explored;
+			}
+		}
+	}
+}
+
+void setKodomo(Node& parent) {
+	//TODO
 }

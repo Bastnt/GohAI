@@ -80,11 +80,13 @@
     <ClCompile Include="Intersection.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Marquage.cpp" />
+    <ClCompile Include="Node.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Go.h" />
     <ClInclude Include="Intersection.h" />
     <ClInclude Include="Marquage.h" />
+    <ClInclude Include="Node.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

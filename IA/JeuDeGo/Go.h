@@ -7,6 +7,7 @@
 
 #include "Intersection.h"
 #include "Marquage.h"
+#include "Node.h"
 
 #ifndef GO_H
 #define GO_H
@@ -17,6 +18,7 @@ enum Case { Noir = 0, Blanc = 1, Vide = 2, Exterieur = 3 };
 
 const int MaxCoups = 300;
 Marquage dejavu, dejavu2;
+
 unsigned long long HashArray [2] [Taille + 2] [Taille + 2];
 unsigned long long HashTurn;
 
@@ -27,8 +29,10 @@ public:
 	Intersection moves [MaxCoups];
 	unsigned long long hash;
 	unsigned long long HashHistory [MaxCoups];
-
 	float score [2];
+
+	const static float C;
+	Node root;
 
 	Go();
 	void initHash();
@@ -47,6 +51,10 @@ public:
 	bool gameOver ();
 	Intersection choisirUnCoup (int couleur);
 	void playout (int couleur);
+
+	void montecarloAlgorithm ();
+	int selectBestChild(Node& explored, int max_score, Node& best);
+	void setKodomo(Node& parent);
 };
 
 #endif

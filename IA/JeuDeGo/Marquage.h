@@ -26,7 +26,7 @@ bool Marquage::marquee (int i, int j) {
 }
 
 bool Marquage::marquee (Intersection inter) {
-	return (_marquee [inter._x] [inter._y] == _marqueur);
+	return (_marquee [inter.x_] [inter.y_] == _marqueur);
 }
 
 #endif 

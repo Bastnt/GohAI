@@ -16,5 +16,5 @@ void Marquage::marque(int i, int j) {
 }
 
 void Marquage::marque(Intersection inter) {
-	_marquee [inter._x] [inter._y] = _marqueur;
+	_marquee [inter.x_] [inter.y_] = _marqueur;
 }
