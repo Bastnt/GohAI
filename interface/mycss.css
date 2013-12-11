@@ -1,5 +1,5 @@
 body{background-color:black;}
-#board {position: absolute; width: 700px; height: 700px; top:0; left:0; bottom:0; right:0; margin: auto;background-image: url("img/water.jpg");text-align: left;}
+#board {position: absolute; width: 700px; height: 700px; top:0; left:0; bottom:0; right:0; margin: auto;background-image: url("img/goban.jpg");text-align: left;}
 .row { position: relative; width: 100%; height: 61px; top: 19px;left: 19px; margin-bottom:14px;}
 .row div {position: relative; width: 61px; height: inherit;top: 0; display: inline-block;padding: 0; margin-right: 10px;text-align: center; vertical-align: middle;}
 

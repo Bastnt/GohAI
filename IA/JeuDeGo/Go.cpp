@@ -275,7 +275,7 @@ bool Go::oeil (Intersection inter, int couleur) {
 /* score a la chinoise : nb de pierres sur le goban */
 void Go::calculeScores () {
 	score [Noir] = 0;
-	score [Blanc] = komi;
+	score [Blanc] = KOMI;
 
 	for (int i = 1; i <= Taille; i++)
 		for (int j = 1; j <= Taille; j++)
@@ -349,7 +349,7 @@ Intersection Go::choisirUnCoup (int couleur) {
 }
 
 void Go::playout (int couleur) {
-	for (;;) {
+	while(true) {
 		if ((nbCoupsJoues >= MaxCoups) || gameOver ())
 			break;
 
@@ -364,7 +364,20 @@ void Go::playout (int couleur) {
 	calculeScores ();
 }
 
-void Go::montecarloAlgorithm () {
+list<Intersection>& Go::GetLegalMoves(int color) {
+	list<Intersection> moves;
+	for (int i = 0; i < Taille; ++i) {
+		for (int j = 0; j < Taille; ++j) {
+			Intersection i(i,j);
+			if(coupLegal(i, color)) {
+				moves.push_back(i);
+			}
+		}
+	}
+	return moves;
+}
+
+void Go::montecarloAlgorithm (int color) {
 	/*
 	Selection: starting from root R, select successive child nodes down to a leaf node L. The section below says more about a way of choosing child nodes that lets the game tree expand towards most promising moves, which is the essence of MCTS.
 	Expansion: unless L ends the game, create none, one or more child nodes of it and choose from them node C. If none child was created, start simulation from L.
@@ -372,40 +385,51 @@ void Go::montecarloAlgorithm () {
 	Backpropagation:using the result of the playout, update information in the nodes on the path from C to R.
 	*/
 
-	//Selection
-	Node bestChild = root;
-	selectBestChild(root, root.getScore(), bestChild);
+	// Selection
+	Node selected = root;
+	Select(root);
 		
 	//Expansion
-	setKodomo(bestChild);
+	Expand(selected, color);
 
 	//Simulation
-	//goban.randomPlayout();
+	Simulate(selected, color);
 
 	//Backpropaging
 	//goban.backPropagation();
 }
 
-int Go::selectBestChild(Node& explored, int max_score, Node& best) {
-	if(explored.isLeaf()) {
-		if(explored.getScore() > max_score) {
-			best=explored;
-			return explored.getScore();
-		}
-		return max_score;
-	}
-	else {
-		int max_parcoured = max_score;
-		for(int i = 0, length = explored.kodomo_.size(); i<length; ++i) {
-			int new_max = selectBestChild((*(explored.kodomo_[i])), max_parcoured, best);
-			if(new_max > max_parcoured) {
-				max_parcoured = new_max;
+Node& Go::Select(Node& explored) {
+	while(!explored.isLeaf()) {
+		Node& best = explored;
+		float max = numeric_limits<float>::min();
+		for(list<Node>::iterator it = explored.kodomo_.begin(); it != explored.kodomo_.end(); ++it) {
+			float score = (static_cast<float>(it->winCounter_) / it->playCounter_) 
+						+ C * sqrt(log(explored.playCounter_) / it->playCounter_);
+			if(score > max) {
+				max = score;
 				best = explored;
+			}
+		}
+		explored = best;
+	}
+
+	return explored;
+}
+
+void Go::Expand(Node& node, int color) {
+	// Create the list of the children
+	for (int i = 0; i < Taille; ++i) {
+		for (int j = 0; j < Taille; ++j) {
+			Intersection i(i,j);
+			if(coupLegal(i, color)) {
+				node.moves_.push_back(i);
+				node.kodomo_.push_back(Node(&node));
 			}
 		}
 	}
 }
 
-void setKodomo(Node& parent) {
-	//TODO
+void Go::Simulate(Node& node, int color) {
+
 }

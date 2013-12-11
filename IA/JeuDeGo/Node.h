@@ -3,17 +3,19 @@
 
 #include "Intersection.h"
 #include "Marquage.h"
-#include <vector>
+#include <list>
+
+using namespace std;
 
 class Node {
 	public :
-		int winCounter_, visitCounter_;
+		int winCounter_, playCounter_;
 		Node* parent_;
-		std::vector<Intersection> moves_;
-		std::vector<Node*> kodomo_;
+		list<Intersection> moves_;
+		list<Node> kodomo_;
 		unsigned long long hash_;
 
-		Node(int win = 0, int visit = 0, Node* parent = NULL);
+		Node(Node* parent = NULL);
 		Node(const Node & n);
 		void becomeRoot();
 		bool isRoot();

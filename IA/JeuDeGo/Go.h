@@ -1,9 +1,8 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include <math.h>
 #include <iostream>
 #include <stack>
 #include <list>
+#include <limits>
 
 #include "Intersection.h"
 #include "Marquage.h"
@@ -12,7 +11,8 @@
 #ifndef GO_H
 #define GO_H
 
-#define komi 7.5
+const float KOMI = 7.5;
+const int C = 0.3;
 
 enum Case { Noir = 0, Blanc = 1, Vide = 2, Exterieur = 3 };
 
@@ -52,9 +52,11 @@ public:
 	Intersection choisirUnCoup (int couleur);
 	void playout (int couleur);
 
-	void montecarloAlgorithm ();
-	int selectBestChild(Node& explored, int max_score, Node& best);
-	void setKodomo(Node& parent);
+	list<Intersection>& Go::GetLegalMoves(int color);
+	void montecarloAlgorithm (int color);
+	Node& Select(Node& explored);
+	void Expand(Node& node, int couleur);
+	void Simulate(Node& node, int color);
 };
 
 #endif

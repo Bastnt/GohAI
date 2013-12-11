@@ -1,6 +1,8 @@
 #include "Node.h"
 
-Node::Node(int won, int parcoured, Node* parent) : winCounter_(won), visitCounter_(parcoured), parent_(parent) {
+Node::Node(Node* parent) : parent_(parent) {
+	winCounter_ = 0;
+	playCounter_ = 0;
 }
 
 Node::Node(const Node & n) {
