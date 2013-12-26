@@ -12,6 +12,8 @@
 #define GO_H
 
 const float KOMI = 7.5;
+const int WIDTH = Taille + 2;
+const short PLAYOUTS = 10;
 const int C = 0.3;
 
 enum Case { Noir = 0, Blanc = 1, Vide = 2, Exterieur = 3 };
@@ -19,12 +21,12 @@ enum Case { Noir = 0, Blanc = 1, Vide = 2, Exterieur = 3 };
 const int MaxCoups = 300;
 Marquage dejavu, dejavu2;
 
-unsigned long long HashArray [2] [Taille + 2] [Taille + 2];
+unsigned long long HashArray [2] [WIDTH] [WIDTH];
 unsigned long long HashTurn;
 
 class Go {
 public:
-	char goban [Taille + 2] [Taille + 2];
+	char* goban;
 	int nbCoupsJoues;
 	Intersection moves [MaxCoups];
 	unsigned long long hash;
@@ -35,6 +37,8 @@ public:
 	Node root;
 
 	Go();
+	~Go();
+	int c(int i, int j);
 	void initHash();
 	bool coupLegal(Intersection inter, int couleur);
 	unsigned long long hashSiJoue(Intersection inter, int couleur);
@@ -52,11 +56,13 @@ public:
 	Intersection choisirUnCoup (int couleur);
 	void playout (int couleur);
 
+	char* CopyGoban(char* src);
 	list<Intersection>& Go::GetLegalMoves(int color);
 	void montecarloAlgorithm (int color);
 	Node& Select(Node& explored);
-	void Expand(Node& node, int couleur);
+	Node& Expand(Node& node, int couleur);
 	void Simulate(Node& node, int color);
+	void BackPropage(Node& node);
 };
 
 #endif
