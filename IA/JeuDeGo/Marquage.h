@@ -1,7 +1,7 @@
-#include "Intersection.h"
-
 #ifndef MARQUAGE_H
 #define MARQUAGE_H
+
+#include "Intersection.h"
 
 const int Taille = 9;
 

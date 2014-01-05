@@ -17,6 +17,7 @@ Go::Go () {
 		goban [c(WIDTH-1,i)] = Exterieur;
 		goban [c(i,WIDTH-1)] = Exterieur;
 	}
+	root_ = new Node();
 }
 
 Go::~Go () {
@@ -394,7 +395,8 @@ char* Go::CopyGoban(char* src) {
 	return dest;
 }
 
-void Go::montecarloAlgorithm (int color) {
+void Go::MontecarloAlgorithm (int color) {
+	Node selected = root_;
 	/*
 	Selection: starting from root R, select successive child nodes down to a leaf node L. The section below says more about a way of choosing child nodes that lets the game tree expand towards most promising moves, which is the essence of MCTS.
 	Expansion: unless L ends the game, create none, one or more child nodes of it and choose from them node C. If none child was created, start simulation from L.
@@ -403,7 +405,6 @@ void Go::montecarloAlgorithm (int color) {
 	*/
 
 	// Selection
-	Node selected = root;
 	Select(selected);
 		
 	//Expansion
@@ -416,11 +417,57 @@ void Go::montecarloAlgorithm (int color) {
 	BackPropage(selected);
 }
 
+Intersection Go::GetBestMove(long seconds, int color) {
+	//Run the algorithm
+	clock_t start_time=clock();
+    while((long) ((clock() - start_time) / CLOCKS_PER_SEC) < seconds) {
+		MontecarloAlgorithm (color);
+	}
+
+	//Retrieve the answer
+	if(root_->kodomo_.size() > 0) {
+		float score = (static_cast<float>(root_->kodomo_[0].winCounter_));
+		int best=0;
+		for(int i=0, lg=root_->kodomo_.size(); i<lg; ++i) {
+			if(score < static_cast<float>(root_->kodomo_[i].winCounter_)) {
+				best = i;
+				score = static_cast<float>(root_->kodomo_[i].winCounter_);
+			}
+		}
+		return root_->moves_[best];
+	}
+	else {
+		cerr << "The root has no child, cannot find the best move amongst them!" << endl;
+		cout << "An error has occured" << endl;
+		return NULL;
+	}
+}
+		
+void Go::UpdateGohanAndNode(Intersection move, int color) {
+	joue(move, color);
+	int i=0, lg=root_->moves_.size();
+	while(i < lg) {
+		if(move.x_==root_->moves_[i].x_ && move.y_==root_->moves_[i].y_)
+			break;
+		++i;
+	}
+	if(i != lg){
+		//TODO: properly test the memory here
+		root_ = &(root_->kodomo_[i]);
+		root_->becomeRoot();
+	}
+	else {
+		cerr << "Could not find the proper child, try running montecarlo algorithm before using the method again" << endl;
+	}
+
+
+}
+
 Node& Go::Select(Node& explored) {
 	while(!explored.isLeaf()) {
 		Node& best = explored;
 		float max = numeric_limits<float>::min();
-		for(list<Node>::iterator it = explored.kodomo_.begin(); it != explored.kodomo_.end(); ++it) {
+		for(vector<Node>::iterator it = explored.kodomo_.begin(); it != explored.kodomo_.end(); ++it) {
 			float score = (static_cast<float>(it->winCounter_) / it->playCounter_) 
 						+ C * sqrt(log((float)explored.playCounter_) / it->playCounter_);
 			if(score > max) {
@@ -453,14 +500,18 @@ Node& Go::Expand(Node& node, int color) {
 }
 
 void Go::Simulate(Node& node, int color) {
-	for(int i = 0; i < PLAYOUTS; ++i) {
-		char *old = CopyGoban(goban);
-		playout(color);
-		++node.playCounter_;
-		node.winCounter_ += score[color];
-		delete[] goban;
-		goban = old;
-	}
+	//We remember the old goban so that we can restore it afterwards
+	char *old = CopyGoban(goban);
+	//We play the random playout
+	playout(color);
+	//The node has so been played once more...
+	++node.playCounter_;
+	//.. and its winCounter has possibly evolved
+	node.winCounter_ += score[color];
+	//We delete the resulting goban...
+	delete[] goban;
+	//...and eventually restore the previous goban
+	goban = old;
 }
 
 void Go::BackPropage(Node& node) {
