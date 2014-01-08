@@ -66,7 +66,7 @@ public:
 	char* CopyGoban(char* src);
 	//Get tge list of legal moves for a color within the actual goban
 	list<Intersection>& Go::GetLegalMoves(int color);
-	//Performs the selection within the MCTS, selecting the best Node at the moment
+	//Performs the selection within the MCTS, selecting the best Node at the moment, also update the goban to be in the good state
 	Node& Select(Node& explored);
 	//Performs the expansion within the MCTS, increasing the number of considered Nodes
 	Node& Expand(Node& node, int couleur);
@@ -78,6 +78,8 @@ public:
 	void MontecarloAlgorithm (int color);
 	//Update the gohan and the root node, allowing us to conserve our previous results for more accuracy
 	void UpdateGohanAndNode(Intersection move, int color);
+	//Displays the goban in the console, helping debug
+	void DisplayGoban();
 
 	//The best move to perform after processing MCTS for the provided amount of time
 	Intersection GetBestMove(long seconds, int color);

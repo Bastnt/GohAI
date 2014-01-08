@@ -7,9 +7,14 @@ Node::Node(Node* parent) : parent_(parent) {
 
 Node::Node(const Node & n) {
 	winCounter_ = n.winCounter_;
+	playCounter_ = n.playCounter_;
 	parent_ = n.parent_;
-	//moves_(n.moves_);
-	//kodomo_(n.kodomo_);
+	for(int i=0, lg=n.kodomo_.size(); i<lg; ++i) {
+		kodomo_.push_back(n.kodomo_[i]);
+	}
+	for(int i=0, lg=n.moves_.size(); i<lg; ++i) {
+		moves_.push_back(n.moves_[i]);
+	}
 	hash_ = n.hash_;
 }
 

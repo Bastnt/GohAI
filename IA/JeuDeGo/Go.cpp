@@ -44,6 +44,7 @@ void Go::initHash () {
 }
 
 bool Go::coupLegal (Intersection inter, int couleur) {
+	//(0;0) means skip a turn, always a legal move
 	if ((inter.x_ == 0) && (inter.y_ == 0))
 		return true;
 
@@ -388,40 +389,16 @@ list<Intersection>& Go::GetLegalMoves(int color) {
 }
 
 char* Go::CopyGoban(char* src) {
-	char dest[WIDTH*WIDTH];
-	for(int i = 0; i < WIDTH*WIDTH; ++i) {
-		dest[i] = src[i];
-	}
+	char* dest = new char[WIDTH*WIDTH];
+	strncpy(dest, src, WIDTH*WIDTH);
 	return dest;
-}
-
-void Go::MontecarloAlgorithm (int color) {
-	Node selected = root_;
-	/*
-	Selection: starting from root R, select successive child nodes down to a leaf node L. The section below says more about a way of choosing child nodes that lets the game tree expand towards most promising moves, which is the essence of MCTS.
-	Expansion: unless L ends the game, create none, one or more child nodes of it and choose from them node C. If none child was created, start simulation from L.
-	Simulation: play a random playout from node C.
-	Backpropagation:using the result of the playout, update information in the nodes on the path from C to R.
-	*/
-
-	// Selection
-	Select(selected);
-		
-	//Expansion
-	selected = Expand(selected, color);
-
-	//Simulation
-	Simulate(selected, color);
-
-	//Backpropaging
-	BackPropage(selected);
 }
 
 Intersection Go::GetBestMove(long seconds, int color) {
 	//Run the algorithm
 	clock_t start_time=clock();
     while((long) ((clock() - start_time) / CLOCKS_PER_SEC) < seconds) {
-		MontecarloAlgorithm (color);
+		MontecarloAlgorithm(color);
 	}
 
 	//Retrieve the answer
@@ -434,11 +411,12 @@ Intersection Go::GetBestMove(long seconds, int color) {
 				score = static_cast<float>(root_->kodomo_[i].winCounter_);
 			}
 		}
+		cout << "The next move to perform is: (" << root_->moves_[best].x_ << ";" << root_->moves_[best].y_ << ")" << endl;
 		return root_->moves_[best];
 	}
 	else {
 		cerr << "The root has no child, cannot find the best move amongst them!" << endl;
-		cout << "An error has occured" << endl;
+		cout << "An error has occured, please consult your log" << endl;
 		return NULL;
 	}
 }
@@ -464,39 +442,48 @@ void Go::UpdateGohanAndNode(Intersection move, int color) {
 }
 
 Node& Go::Select(Node& explored) {
-	while(!explored.isLeaf()) {
-		Node& best = explored;
-		float max = numeric_limits<float>::min();
-		for(vector<Node>::iterator it = explored.kodomo_.begin(); it != explored.kodomo_.end(); ++it) {
-			float score = (static_cast<float>(it->winCounter_) / it->playCounter_) 
-						+ C * sqrt(log((float)explored.playCounter_) / it->playCounter_);
+	Node * current = &explored;
+	//Remember the position within the kodomo to update the goban with the good move 
+	int i;
+	while(!current->isLeaf()) {
+		i=0;
+		Node* best = current;
+		float max = -1;
+		for(int lg=explored.kodomo_.size(); i<lg; ++i) {
+			float score = (static_cast<float>(explored.kodomo_[i].winCounter_) / explored.kodomo_[i].playCounter_) 
+						+ C * sqrt(log((float)explored.playCounter_) / explored.kodomo_[i].playCounter_);
 			if(score > max) {
 				max = score;
-				best = explored;
+				best =  &(explored.kodomo_[i]);
 			}
 		}
-		explored = best;
+		//TODO : update the gohan according to the color! (add a parameter color also)
+		current = best;
 	}
+	cout << "end of a select" << endl;
 
-	return explored;
+	return *current;
 }
 
 Node& Go::Expand(Node& node, int color) {
+	//DisplayGoban();
 	// Create the list of the children
-	for (int i = 0; i < Taille; ++i) {
-		for (int j = 0; j < Taille; ++j) {
-			Intersection i(i,j);
-			if(coupLegal(i, color)) {
-				node.moves_.push_back(i);
-				node.kodomo_.push_back(Node(&node));
+	for (int i = 0; i < WIDTH; ++i) {
+		for (int j = 0; j < WIDTH; ++j) {
+			Intersection inter(i,j);
+			if(coupLegal(inter, color)) {
+				node.moves_.push_back(inter);
+				Node n(&node);
+				node.kodomo_.push_back(n);
 			}
 		}
 	}
 
-	if(node.kodomo_	.size() > 0)
+	if(node.kodomo_.size() > 0)
 		return node.kodomo_.front();
-	else
-		return node;
+	cout << "WARNING: Could not find any child, returned the node itself" << endl;
+	cerr << "WARNING: Could not find any child, returned the node itself" << endl;
+	return node;
 }
 
 void Go::Simulate(Node& node, int color) {
@@ -504,22 +491,78 @@ void Go::Simulate(Node& node, int color) {
 	char *old = CopyGoban(goban);
 	//We play the random playout
 	playout(color);
-	//The node has so been played once more...
+	//The node has been played once more...
 	++node.playCounter_;
 	//.. and its winCounter has possibly evolved
 	node.winCounter_ += score[color];
 	//We delete the resulting goban...
-	delete[] goban;
+	//delete[] goban;
 	//...and eventually restore the previous goban
 	goban = old;
+	cout << "end of a simulate" << endl;
 }
 
 void Go::BackPropage(Node& node) {
 	int play = node.playCounter_;
 	int win = node.winCounter_;
-	while(!node.isRoot()) {
-		node = node.parent_;
-		node.winCounter_ += win;
-		node.playCounter_ += play;
+	Node* current = &node;
+	while(!current->isRoot()) {
+		current = current->parent_;
+		current->winCounter_ += win;
+		current->playCounter_ += play;
+	}
+	cout << "end of a backpropage" << endl;
+}
+
+void Go::MontecarloAlgorithm (int color) {
+	/*
+	Selection: starting from root R, select successive child nodes down to a leaf node L. The section below says more about a way of choosing child nodes that lets the game tree expand towards most promising moves, which is the essence of MCTS.
+	Expansion: unless L ends the game, create none, one or more child nodes of it and choose from them node C. If none child was created, start simulation from L.
+	Simulation: play a random playout from node C.
+	Backpropagation: using the result of the playout, update information in the nodes on the path from C to R.
+	*/
+
+	//Remember the state of the goban before algorithm
+	char *old = CopyGoban(goban);
+
+	// Selection
+	Node& selected = Select(*root_);
+		
+	//Expansion
+	Node& expanded = Expand(selected, color);
+
+	//Simulation
+	Simulate(expanded, color);
+
+	//Backpropaging
+	BackPropage(expanded);
+
+	//Restore the goban for the next iteration
+	goban = old;
+}
+
+void Go::DisplayGoban() {
+	cout << "Goban:" << endl;
+	for (int i = 1; i <= Taille; i++) {
+		for (int j = 1; j <= Taille; j++) {
+			switch(goban [c(i,j)]) {
+			case Vide: 
+				cout << "V";
+				break;
+			case Blanc: 
+				cout << "B";
+				break;
+			case Noir: 
+				cout << "N";
+				break;
+			case Exterieur:
+				cout << "E";
+				break;
+			default:
+				cout << "O";//other (=errror)
+				break;
+			}
+		}
+		cout << endl;
 	}
 }
