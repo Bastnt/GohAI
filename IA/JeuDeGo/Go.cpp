@@ -2,7 +2,7 @@
 
 using namespace std;
 
-const float Go::C = 0.3;
+const float Go::C = 0.3f;
 
 Go::Go () {
 	hash = 0;
@@ -448,27 +448,32 @@ Node& Go::Select(Node& explored, int& color) {
 	while(!current->isLeaf()) {
 		i=0;
 		Node* best = current;
-		float max = -1;
-		for(int lg=explored.kodomo_.size(); i<lg; ++i) {
-			float score = (static_cast<float>(explored.kodomo_[i].winCounter_) / explored.kodomo_[i].playCounter_) 
-						+ C * sqrt(log((float)explored.playCounter_) / explored.kodomo_[i].playCounter_);
+		int best_index=-1;
+		float max = -1.0f;
+		for(int lg=current->kodomo_.size(); i<lg; ++i) {
+			float score;
+			if(current->kodomo_[i].playCounter_==0)
+				score = 0.1f;
+			else
+				score = (static_cast<float>(current->kodomo_[i].winCounter_) / current->kodomo_[i].playCounter_) 
+						+ C * sqrt(log((float)current->playCounter_) / current->kodomo_[i].playCounter_);
 			if(score > max) {
 				max = score;
-				best = &(explored.kodomo_[i]);
+				best_index=i;
 			}
 		}
 		//update the gohan according to the color
 		color = color==Case::Blanc ? Case::Noir : Case::Blanc;
-		posePierre(explored.moves_[i],color);
+		best = &(current->kodomo_[best_index]);
+		posePierre(current->moves_[best_index],color);
 		current = best;
 	}
-	cout << "end of a select" << endl;
+	std::cout << "end of a select" << endl;
 
 	return *current;
 }
 
 Node& Go::Expand(Node& node, int& color) {
-	//DisplayGoban();
 	color = color==Case::Blanc ? Case::Noir : Case::Blanc;
 	// Create the list of the children
 	for (int i = 0; i < WIDTH; ++i) {
