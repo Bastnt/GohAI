@@ -441,7 +441,7 @@ void Go::UpdateGohanAndNode(Intersection move, int color) {
 
 }
 
-Node& Go::Select(Node& explored) {
+Node& Go::Select(Node& explored, int& color) {
 	Node * current = &explored;
 	//Remember the position within the kodomo to update the goban with the good move 
 	int i;
@@ -454,10 +454,12 @@ Node& Go::Select(Node& explored) {
 						+ C * sqrt(log((float)explored.playCounter_) / explored.kodomo_[i].playCounter_);
 			if(score > max) {
 				max = score;
-				best =  &(explored.kodomo_[i]);
+				best = &(explored.kodomo_[i]);
 			}
 		}
-		//TODO : update the gohan according to the color! (add a parameter color also)
+		//update the gohan according to the color
+		color = color==Case::Blanc ? Case::Noir : Case::Blanc;
+		posePierre(explored.moves_[i],color);
 		current = best;
 	}
 	cout << "end of a select" << endl;
@@ -465,8 +467,9 @@ Node& Go::Select(Node& explored) {
 	return *current;
 }
 
-Node& Go::Expand(Node& node, int color) {
+Node& Go::Expand(Node& node, int& color) {
 	//DisplayGoban();
+	color = color==Case::Blanc ? Case::Noir : Case::Blanc;
 	// Create the list of the children
 	for (int i = 0; i < WIDTH; ++i) {
 		for (int j = 0; j < WIDTH; ++j) {
@@ -487,16 +490,17 @@ Node& Go::Expand(Node& node, int color) {
 }
 
 void Go::Simulate(Node& node, int color) {
+	color = color==Case::Blanc ? Case::Noir : Case::Blanc;
 	//We remember the old goban so that we can restore it afterwards
 	char *old = CopyGoban(goban);
 	//We play the random playout
-	playout(color);
+	playout(color);//start with a move of the color in parameter
 	//The node has been played once more...
 	++node.playCounter_;
 	//.. and its winCounter has possibly evolved
 	node.winCounter_ += score[color];
 	//We delete the resulting goban...
-	//delete[] goban;
+	delete[] goban;
 	//...and eventually restore the previous goban
 	goban = old;
 	cout << "end of a simulate" << endl;
@@ -514,7 +518,7 @@ void Go::BackPropage(Node& node) {
 	cout << "end of a backpropage" << endl;
 }
 
-void Go::MontecarloAlgorithm (int color) {
+void Go::MontecarloAlgorithm(int root_color) {
 	/*
 	Selection: starting from root R, select successive child nodes down to a leaf node L. The section below says more about a way of choosing child nodes that lets the game tree expand towards most promising moves, which is the essence of MCTS.
 	Expansion: unless L ends the game, create none, one or more child nodes of it and choose from them node C. If none child was created, start simulation from L.
@@ -525,8 +529,10 @@ void Go::MontecarloAlgorithm (int color) {
 	//Remember the state of the goban before algorithm
 	char *old = CopyGoban(goban);
 
+	int color = root_color;
+
 	// Selection
-	Node& selected = Select(*root_);
+	Node& selected = Select(*root_, color);
 		
 	//Expansion
 	Node& expanded = Expand(selected, color);

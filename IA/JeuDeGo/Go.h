@@ -28,7 +28,7 @@ const int MaxCoups = 300;
 class Go {
 public:
 	Marquage dejavu, dejavu2;
-	unsigned long long HashArray [2] [WIDTH] [WIDTH];
+	unsigned long long HashArray[2][WIDTH][WIDTH];
 	unsigned long long HashTurn;
 	char* goban;
 	int nbCoupsJoues;
@@ -66,16 +66,16 @@ public:
 	char* CopyGoban(char* src);
 	//Get tge list of legal moves for a color within the actual goban
 	list<Intersection>& Go::GetLegalMoves(int color);
-	//Performs the selection within the MCTS, selecting the best Node at the moment, also update the goban to be in the good state
-	Node& Select(Node& explored);
-	//Performs the expansion within the MCTS, increasing the number of considered Nodes
-	Node& Expand(Node& node, int couleur);
-	//Performs the simulation within the MCTS, randomly playing until an end game position
+	//Performs the selection within the MCTS, selecting the best Node at the moment, also updates the goban to be in the good state
+	Node& Select(Node& explored, int& color);
+	//Performs the expansion within the MCTS, increases the number of considered Nodes
+	Node& Expand(Node& node, int& color);
+	//Performs the simulation within the MCTS, randomly plays until an end of game position
 	void Simulate(Node& node, int color);
 	//Performs the backpropagation within the MCTS, updating the parents Nodes
 	void BackPropage(Node& node);
 	//Does the main job
-	void MontecarloAlgorithm (int color);
+	void MontecarloAlgorithm (int root_color);
 	//Update the gohan and the root node, allowing us to conserve our previous results for more accuracy
 	void UpdateGohanAndNode(Intersection move, int color);
 	//Displays the goban in the console, helping debug
