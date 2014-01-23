@@ -454,8 +454,11 @@ Node& Go::Select(Node& root, int& color) {
 		int best_index=-1;
 		float max = -1.0f, score;
 		for(int lg=current->kodomo_.size(); i<lg; ++i) {
-			if(current->kodomo_[i].playCounter_==0)
-				score = static_cast<float>(current->kodomo_[i].winCounter_)/ 0.5f + C * sqrt(log((float)root.playCounter_)) / 0.5f;
+			if(current->kodomo_[i].playCounter_==0) {
+				//If the kodomo has never been played, we select it
+				best_index=i;
+				break;
+			}
 			else
 			score = (static_cast<float>(current->kodomo_[i].winCounter_) / current->kodomo_[i].playCounter_)
 					+ C * sqrt(log((float)root.playCounter_) / current->kodomo_[i].playCounter_);
@@ -496,22 +499,16 @@ Node& Go::Expand(Node& node, int& color) {
 
 void Go::Simulate(Node& node, int color) {
 	color = color==Case::Blanc ? Case::Noir : Case::Blanc;
+	SaveState();
 	for(int i = 0; i < PLAYOUTS; ++i) {
-		//We remember the old goban so that we can restore it afterwards
-		char *old = CopyGoban(goban);
 		//We play the random playout
-		DisplayGoban();
 		playout(color);//start with a move of the color in parameter
-		DisplayGoban();
-		cout << score[color] << endl;
 		//The node has been played once more...
 		++node.playCounter_;
 		//.. and its winCounter has possibly evolved
 		node.winCounter_ += score[color];
-		//We delete the resulting goban...
-		delete[] goban;
-		//...and eventually restore the previous goban
-		goban = old;
+		//...and eventually restore the previous state
+		RestoreState();
 	}
 }
 
@@ -534,12 +531,10 @@ void Go::MontecarloAlgorithm(int root_color) {
 	Backpropagation: using the result of the playout, update information in the nodes on the path from C to R.
 	*/
 
-	//Remember the state of the goban before algorithm
-	char *old = CopyGoban(goban);
-
+	//Creates a color (will be modified as a reference in the methods below)
 	int color = root_color;
 
-	// Selection
+	//Selection
 	Node& selected = Select(*root_, color);
 		
 	//Expansion
@@ -551,8 +546,6 @@ void Go::MontecarloAlgorithm(int root_color) {
 	//Backpropaging
 	BackPropage(expanded);
 
-	//Restore the goban for the next iteration
-	goban = old;
 }
 
 void Go::DisplayGoban() {
@@ -579,4 +572,21 @@ void Go::DisplayGoban() {
 		}
 		cout << endl;
 	}
+}
+
+void Go::SaveState() {
+	save_goban = CopyGoban(goban);
+	save_nbCoupsJoues = nbCoupsJoues;
+	save_hash = hash;
+	//moves and HashHistory are saved due to nbCoupsJoues
+	save_dejavu = dejavu;
+	save_dejavu2 =dejavu2;
+}
+
+void Go::RestoreState(){
+	goban = CopyGoban(save_goban);
+	nbCoupsJoues = save_nbCoupsJoues;
+	hash = save_hash;
+	dejavu =save_dejavu;
+	dejavu2 = save_dejavu2;
 }

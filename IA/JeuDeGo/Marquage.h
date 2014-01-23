@@ -12,6 +12,8 @@ class Marquage {
 public:
 	Marquage ();
 
+	Marquage(const Marquage& to_copy);
+
 	void init ();
 
 	inline bool marquee (int i, int j);

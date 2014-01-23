@@ -7,6 +7,14 @@ Marquage::Marquage() {
 			_marquee [i] [j] = 0;
 }
 
+Marquage::Marquage(const Marquage& to_copy) {
+	_marqueur = to_copy._marqueur;
+	for(int i=0; i< Taille + 2 ; ++i) {
+		for(int j=0; j< Taille + 2 ; ++j)
+			_marquee[i][j]=to_copy._marquee[i][j];
+	}
+}
+
 void Marquage::init() {
 	_marqueur++;
 }

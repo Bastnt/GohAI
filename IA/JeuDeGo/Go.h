@@ -37,6 +37,13 @@ public:
 	unsigned long long HashHistory [MaxCoups];
 	float score [2];
 
+	//Save states attributes
+	char* save_goban;
+	int save_nbCoupsJoues;
+	unsigned long long save_hash;
+	Marquage save_dejavu, save_dejavu2;
+
+
 	const static float C;
 	//Represents the current knowledge of the montecarlo algorithm on the goban
 	Node* root_;
@@ -62,8 +69,6 @@ public:
 	Intersection choisirUnCoup (int couleur);
 	void playout (int couleur);
 
-	//Copies the goban so that it can be restored afterwards
-	char* CopyGoban(char* src);
 	//Get tge list of legal moves for a color within the actual goban
 	list<Intersection>& Go::GetLegalMoves(int color);
 	//Performs the selection within the MCTS, selecting the best Node at the moment, also updates the goban to be in the good state
@@ -80,6 +85,12 @@ public:
 	void UpdateGohanAndNode(Intersection move, int color);
 	//Displays the goban in the console, helping debug
 	void DisplayGoban();
+	//Remind the state of goban/nbCoupsJoues/hash
+	void SaveState();
+	//Copies the goban so that it can be restored afterwards
+	char* CopyGoban(char* src);
+	//Restore the state of gobannbCoupsJoues/hash
+	void RestoreState();
 
 	//The best move to perform after processing MCTS for the provided amount of time
 	Intersection GetBestMove(long seconds, int color);
