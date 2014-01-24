@@ -378,6 +378,19 @@ void Go::playout (int couleur) {
 	calculeScores ();
 }
 
+void Go::play (Intersection& move, int couleur) {
+	while(true) {
+		if ((nbCoupsJoues >= MaxCoups) || gameOver ())
+			break;
+
+		joue(move, couleur);
+		if (couleur == Noir)
+			couleur = Blanc;
+		else
+			couleur = Noir;
+	}
+}
+
 list<Intersection>& Go::GetLegalMoves(int color) {
 	list<Intersection> moves;
 	for (int i = 0; i < Taille; ++i) {
@@ -408,7 +421,7 @@ Intersection Go::GetBestMove(long seconds, int color) {
 	if(root_->kodomo_.size() > 0) {
 		float score = (static_cast<float>(root_->kodomo_[0].winCounter_));
 		int best=0;
-		for(int i=0, lg=root_->kodomo_.size(); i<lg; ++i) {
+		for(int i=1, lg=root_->kodomo_.size(); i<lg; ++i) {
 			if(score < static_cast<float>(root_->kodomo_[i].winCounter_)) {
 				best = i;
 				score = static_cast<float>(root_->kodomo_[i].winCounter_);
@@ -445,35 +458,28 @@ void Go::UpdateGohanAndNode(Intersection move, int color) {
 }
 
 Node& Go::Select(Node& root, int& color) {
-	Node * current = &root;
+	Node * best = &root;
 	//Remember the position within the kodomo to update the goban with the good move 
-	int i;
-	while(!current->isLeaf()) {
-		i=0;
-		Node* best = current;
+	while(!best->isLeaf()) {
 		int best_index=-1;
-		float max = -1.0f, score;
-		for(int lg=current->kodomo_.size(); i<lg; ++i) {
-			if(current->kodomo_[i].playCounter_==0) {
-				//If the kodomo has never been played, we select it
-				best_index=i;
-				break;
+		float max = -50.0f, score;
+		for(int i=0, lg=best->kodomo_.size(); i<lg; ++i) {
+			if(best->kodomo_[i].playCounter_==0) {
+				return best->kodomo_[i];
 			}
 			else
-			score = (static_cast<float>(current->kodomo_[i].winCounter_) / current->kodomo_[i].playCounter_)
-					+ C * sqrt(log((float)root.playCounter_) / current->kodomo_[i].playCounter_);
+			score = (static_cast<float>(best->kodomo_[i].winCounter_) / best->kodomo_[i].playCounter_)
+					+ C * sqrt(log((float)root.playCounter_) / best->kodomo_[i].playCounter_);
 			if(score > max) {
 				max = score;
 				best_index=i;
 			}
 		}
 		//update the gohan according to the color
-		color = color==Case::Blanc ? Case::Noir : Case::Blanc;
-		best = &(current->kodomo_[best_index]);
-		joue(current->moves_[best_index],color);
-		current = best;
+		best = &(best->kodomo_[best_index]);
+		play(best->moves_[best_index],color);
 	}
-	return *current;
+	return *best;
 }
 
 Node& Go::Expand(Node& node, int& color) {
@@ -498,7 +504,6 @@ Node& Go::Expand(Node& node, int& color) {
 }
 
 void Go::Simulate(Node& node, int color) {
-	color = color==Case::Blanc ? Case::Noir : Case::Blanc;
 	SaveState();
 	for(int i = 0; i < PLAYOUTS; ++i) {
 		//We play the random playout

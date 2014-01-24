@@ -15,7 +15,7 @@ const float KOMI = 7.5;
 
 const int WIDTH = Taille + 2;
 
-const short PLAYOUTS = 10;
+const short PLAYOUTS = 5;
 
 //Used in the selection algorithm within the MCTS
 const int C = 0.3;
@@ -68,6 +68,7 @@ public:
 	bool gameOver ();
 	Intersection choisirUnCoup (int couleur);
 	void playout (int couleur);
+	void play (Intersection& move, int couleur);
 
 	//Get tge list of legal moves for a color within the actual goban
 	list<Intersection>& Go::GetLegalMoves(int color);
