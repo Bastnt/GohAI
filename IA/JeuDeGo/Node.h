@@ -18,7 +18,7 @@ class Node {
 		//The list of moves that lead to the children Nodes
 		vector<Intersection> moves_;
 		//The list of children Nodes
-		vector<Node> kodomo_;
+		vector<Node*> kodomo_;
 		unsigned long long hash_;
 
 		Node(Node* parent = NULL);
@@ -27,7 +27,6 @@ class Node {
 		void becomeRoot();
 		bool isRoot();
 		bool isLeaf();
-		int getScore();
 };
 
 #endif

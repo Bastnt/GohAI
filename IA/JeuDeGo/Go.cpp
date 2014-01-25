@@ -4,9 +4,7 @@ using namespace std;
 
 const float Go::C = 0.3f;
 
-Go::Go () {
-	hash = 0;
-	nbCoupsJoues = 0;
+Go::Go () : hash(0), nbCoupsJoues(0) {
 	goban = new char[WIDTH*WIDTH];
 	for (int i = 1; i <= Taille; i++)
 		for (int j = 1; j <= Taille; j++)
@@ -22,10 +20,15 @@ Go::Go () {
 	goban[c(4,2)] = Noir;
 	goban[c(1,2)] = Blanc;*/
 	root_ = new Node();
+	dejavu = new Marquage();
+	dejavu2 = new Marquage();
 }
 
 Go::~Go () {
 	delete[] goban;
+	delete root_;
+	delete dejavu;
+	delete dejavu2;
 }
 
 int Go::c(int i, int j) {
@@ -82,17 +85,17 @@ unsigned long long Go::hashSiJoue (Intersection inter, int couleur) {
 	if (couleur == Case::Noir)
 		adversaire = Blanc;
 
-	dejavu2.init ();
-	dejavu2.marque (inter);
+	dejavu2->init ();
+	dejavu2->marque (inter);
 	h ^= HashArray [couleur] [inter.x_] [inter.y_];
 	h ^= HashTurn;
 	for (int i = 0; i < 4; i++) {
 		Intersection voisine = inter.voisine (i);
-		if (!dejavu2.marquee (voisine)) {
+		if (!dejavu2->marquee (voisine)) {
 			if (goban[c(voisine.x_,voisine.y_)] == adversaire)
 				if (minLib (voisine, 2) == 1) {
 					stack<Intersection> st;
-					dejavu2.marque (voisine);
+					dejavu2->marque (voisine);
 					st.push (voisine);
 					while (!st.empty ()) {
 						Intersection courante = st.top ();
@@ -101,8 +104,8 @@ unsigned long long Go::hashSiJoue (Intersection inter, int couleur) {
 						for (int j = 0; j < 4; j++) {
 							Intersection pierre = courante.voisine (j);
 							if (goban[c(pierre.x_,pierre.y_)] == adversaire)
-								if (!dejavu2.marquee (pierre)) {
-									dejavu2.marque (pierre);
+								if (!dejavu2->marquee (pierre)) {
+									dejavu2->marque (pierre);
 									st.push (pierre);
 								}
 						}
@@ -117,16 +120,16 @@ int Go::minLib (Intersection inter, int min) {
 	stack<Intersection> st;
 	int compteur = 0, couleur = goban[c(inter.x_,inter.y_)];
 
-	dejavu.init ();
-	dejavu.marque (inter);
+	dejavu->init ();
+	dejavu->marque (inter);
 	st.push (inter);
 	while (!st.empty ()) {
 		Intersection inter = st.top ();
 		st.pop ();
 		for (int i = 0; i < 4; i++) {
 			Intersection voisine = inter.voisine (i);
-			if (!dejavu.marquee (voisine)) {
-				dejavu.marque (voisine);
+			if (!dejavu->marquee (voisine)) {
+				dejavu->marque (voisine);
 				if (goban[c(voisine.x_,voisine.y_)] == Vide) {
 					compteur++;
 					if (compteur >= min)
@@ -145,16 +148,16 @@ int Go::minLibIfPlay (Intersection intersection, int couleur, int min) {
 	int compteur = 0;
 
 	if (goban[c(intersection.x_,intersection.y_)] == Vide) {
-		dejavu2.init ();
-		dejavu2.marque (intersection);
+		dejavu2->init ();
+		dejavu2->marque (intersection);
 		st.push (intersection);
 		while (!st.empty ()) {
 			Intersection inter = st.top ();
 			st.pop ();
 			for (int i = 0; i < 4; i++) {
 				Intersection voisine = inter.voisine (i);
-				if (!dejavu2.marquee (voisine)) {
-					dejavu2.marque (voisine);
+				if (!dejavu2->marquee (voisine)) {
+					dejavu2->marque (voisine);
 					if (goban[c(voisine.x_,voisine.y_)] == Vide) {
 						compteur++;
 						if (compteur >= min)
@@ -378,17 +381,8 @@ void Go::playout (int couleur) {
 	calculeScores ();
 }
 
-void Go::play (Intersection& move, int couleur) {
-	while(true) {
-		if ((nbCoupsJoues >= MaxCoups) || gameOver ())
-			break;
-
-		joue(move, couleur);
-		if (couleur == Noir)
-			couleur = Blanc;
-		else
-			couleur = Noir;
-	}
+void Go::ChangeColor(int& color) {
+	color = color==Blanc ? Noir : Blanc;
 }
 
 list<Intersection>& Go::GetLegalMoves(int color) {
@@ -419,12 +413,12 @@ Intersection Go::GetBestMove(long seconds, int color) {
 
 	//Retrieve the answer
 	if(root_->kodomo_.size() > 0) {
-		float score = (static_cast<float>(root_->kodomo_[0].winCounter_));
+		float score = (static_cast<float>(root_->kodomo_[0]->winCounter_));
 		int best=0;
 		for(int i=1, lg=root_->kodomo_.size(); i<lg; ++i) {
-			if(score < static_cast<float>(root_->kodomo_[i].winCounter_)) {
+			if(score < static_cast<float>(root_->kodomo_[i]->winCounter_)) {
 				best = i;
-				score = static_cast<float>(root_->kodomo_[i].winCounter_);
+				score = static_cast<float>(root_->kodomo_[i]->winCounter_);
 			}
 		}
 		cout << "The next move to perform is: (" << root_->moves_[best].x_ << ";" << root_->moves_[best].y_ << ")" << endl;
@@ -432,7 +426,6 @@ Intersection Go::GetBestMove(long seconds, int color) {
 	}
 	else {
 		cerr << "The root has no child, cannot find the best move amongst them!" << endl;
-		cout << "An error has occured, please consult your log" << endl;
 		return NULL;
 	}
 }
@@ -447,10 +440,9 @@ void Go::UpdateGohanAndNode(Intersection move, int color) {
 	}
 	if(i != lg){
 		//TODO: properly test the memory here
-		root_ = &(root_->kodomo_[i]);
+		root_ = root_->kodomo_[i];
 		root_->becomeRoot();
-	}
-	else {
+	} else {
 		cerr << "Could not find the proper child, try running montecarlo algorithm before using the method again" << endl;
 	}
 
@@ -464,20 +456,21 @@ Node& Go::Select(Node& root, int& color) {
 		int best_index=-1;
 		float max = -50.0f, score;
 		for(int i=0, lg=best->kodomo_.size(); i<lg; ++i) {
-			if(best->kodomo_[i].playCounter_==0) {
-				return best->kodomo_[i];
+			if(best->kodomo_[i]->playCounter_==0) {
+				return *(best->kodomo_[i]);
 			}
 			else
-			score = (static_cast<float>(best->kodomo_[i].winCounter_) / best->kodomo_[i].playCounter_)
-					+ C * sqrt(log((float)root.playCounter_) / best->kodomo_[i].playCounter_);
+			score = (static_cast<float>(best->kodomo_[i]->winCounter_) / best->kodomo_[i]->playCounter_)
+					+ C * sqrt(log((float)root.playCounter_) / best->kodomo_[i]->playCounter_);
 			if(score > max) {
 				max = score;
 				best_index=i;
 			}
 		}
 		//update the gohan according to the color
-		best = &(best->kodomo_[best_index]);
-		play(best->moves_[best_index],color);
+		best = best->kodomo_[best_index];
+		ChangeColor(color);
+		joue(best->moves_[best_index], color);
 	}
 	return *best;
 }
@@ -490,20 +483,20 @@ Node& Go::Expand(Node& node, int& color) {
 			Intersection inter(i,j);
 			if(coupLegal(inter, color)) {
 				node.moves_.push_back(inter);
-				Node n(&node);
+				Node* n = new Node(&node);
 				node.kodomo_.push_back(n);
 			}
 		}
 	}
 
 	if(node.kodomo_.size() > 0)
-		return node.kodomo_.front();
-	cout << "WARNING: Could not find any child, returned the node itself" << endl;
+		return *(node.kodomo_.front());
 	cerr << "WARNING: Could not find any child, returned the node itself" << endl;
 	return node;
 }
 
 void Go::Simulate(Node& node, int color) {
+	ChangeColor(color);
 	SaveState();
 	for(int i = 0; i < PLAYOUTS; ++i) {
 		//We play the random playout
@@ -541,15 +534,17 @@ void Go::MontecarloAlgorithm(int root_color) {
 
 	//Selection
 	Node& selected = Select(*root_, color);
-		
+	cout << "after a select" << endl;	
 	//Expansion
 	Node& expanded = Expand(selected, color);
-
+	cout << "after an expansion" << endl;
 	//Simulation
 	Simulate(expanded, color);
-
+	cout << "after a simulate" << endl;
 	//Backpropaging
 	BackPropage(expanded);
+
+	cout << "after a backpropage" << endl;
 
 }
 
@@ -584,14 +579,14 @@ void Go::SaveState() {
 	save_nbCoupsJoues = nbCoupsJoues;
 	save_hash = hash;
 	//moves and HashHistory are saved due to nbCoupsJoues
-	save_dejavu = dejavu;
-	save_dejavu2 =dejavu2;
+	save_dejavu = new Marquage(*dejavu);
+	save_dejavu2 = new Marquage(*dejavu2);
 }
 
 void Go::RestoreState(){
 	goban = CopyGoban(save_goban);
 	nbCoupsJoues = save_nbCoupsJoues;
 	hash = save_hash;
-	dejavu =save_dejavu;
-	dejavu2 = save_dejavu2;
+	dejavu = new Marquage(*save_dejavu);
+	dejavu2 = new Marquage(*save_dejavu2);
 }

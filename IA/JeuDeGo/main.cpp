@@ -5,8 +5,9 @@
 using namespace std;
 
 int main() {
-	Go g = Go();
-	g.GetBestMove(5,0);
+	Go* g = new Go();
+	g->GetBestMove(11,0);
+	delete g;
 	system("PAUSE");
 	return 0;
 }

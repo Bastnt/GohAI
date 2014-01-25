@@ -29,8 +29,3 @@ bool Node::isRoot() {
 bool Node::isLeaf() {
 	return kodomo_.size()==0;
 }
-
-int Node::getScore() {
-	//TODO
-	return 0;
-}

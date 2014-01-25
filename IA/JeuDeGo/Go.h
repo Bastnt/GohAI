@@ -5,6 +5,7 @@
 #include <stack>
 #include <list>
 #include <limits>
+#include <memory>
 #include <time.h>
 
 #include "Intersection.h"
@@ -27,7 +28,7 @@ const int MaxCoups = 300;
 
 class Go {
 public:
-	Marquage dejavu, dejavu2;
+	Marquage* dejavu, *dejavu2;
 	unsigned long long HashArray[2][WIDTH][WIDTH];
 	unsigned long long HashTurn;
 	char* goban;
@@ -41,7 +42,7 @@ public:
 	char* save_goban;
 	int save_nbCoupsJoues;
 	unsigned long long save_hash;
-	Marquage save_dejavu, save_dejavu2;
+	Marquage* save_dejavu, * save_dejavu2;
 
 
 	const static float C;
@@ -74,6 +75,8 @@ public:
 	list<Intersection>& Go::GetLegalMoves(int color);
 	//Performs the selection within the MCTS, selecting the best Node at the moment, also updates the goban to be in the good state
 	Node& Select(Node& explored, int& color);
+	//Changes the color in parameter from Blanc to Noir and Noir to Blanc
+	void Go::ChangeColor(int& color);
 	//Performs the expansion within the MCTS, increases the number of considered Nodes
 	Node& Expand(Node& node, int& color);
 	//Performs the simulation within the MCTS, randomly plays until an end of game position
