@@ -6,23 +6,28 @@
 
 using namespace std;
 
+/*
+	An information in the Montecarlo Tree
+*/
 class Node {
 	public :
-		//The number of times this Node has lead to a victorious melee
+		//Number of times this Node has lead to a victorious melee
 		int winCounter_;
-		//The number of times this Node has been passed by
+		//Number of times this Node has been passed by
 		int playCounter_;
-		//The parent of the current node, NULL if the root
+		//Parent of the current node, NULL if the root
 		Node* parent_;
-		//The list of moves that lead to the children Nodes
+		//List of moves that lead to the children Nodes
 		vector<Move> moves_;
-		//The list of children Nodes
+		//List of children Nodes
 		vector<Node*> children_;
-
+		//Default constructor
 		Node(Node* parent = NULL);
+		//Copycat constructor
 		Node(const Node & n);
-
+		//Checks if the Node is the root of the tree (has no parent)
 		bool isRoot();
+		//Checks if the Node is a leaf of the tree (has no child)
 		bool isLeaf();
 };
 
