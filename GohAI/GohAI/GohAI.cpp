@@ -55,7 +55,7 @@ bool GohAI::isLegalMove(Move move, char color) {
 	}
 
 	unsigned long long h = Hash(move, color);
-	for (vector<unsigned long long>::iterator it = hash_history_.end(); it != hash_history_.begin(); --it)
+	for (auto it = hash_history_.rbegin(); it != hash_history_.rend(); ++it)
 		if (*it == h)
 			return false;
 
@@ -80,6 +80,8 @@ unsigned long long GohAI::Hash(Move move, char color) {
 	Move neighbor, rock, position;
 	for (int i = 0; i < 4; ++i) {
 		neighbor = Move::GetNeighbour(move, i);
+		if(isOut(neighbor))
+			continue;
 		if (!remember[neighbor.x_][neighbor.y_]) {
 			if (goban_[neighbor.x_][neighbor.y_] == opponent)
 				if (GetLiberties(neighbor, 2) == 1) {
@@ -92,6 +94,8 @@ unsigned long long GohAI::Hash(Move move, char color) {
 						h ^= hash_array_[goban_[neighbor.x_][neighbor.y_]] [position.x_][position.y_];
 						for (int j = 0; j < 4; ++j) {
 							rock = Move::GetNeighbour(position, j);
+							if(isOut(rock))
+								continue;
 							if (goban_[rock.x_][rock.y_] == opponent)
 								if (!remember[rock.x_][rock.y_]) {
 									remember[rock.x_][rock.y_] = 1;
@@ -141,7 +145,7 @@ void GohAI::Play(Move move, char color) {
 	moves_.push_back(move);
 	hash_ ^= HASH_TURN;
 
-	// If you do not pass our turn
+	// If we do not pass our turn
 	if (move.x_ != -1) {
 		PutStone(move, color);
 		RemovePrisonners(move, color);
@@ -169,6 +173,8 @@ void GohAI::RemovePrisonners(Move move, char color) {
 
 	for (int i = 0; i < 4; ++i) {
 		neighbor = Move::GetNeighbour(move, i);
+		if(isOut(neighbor))
+			continue;
 		if ((goban_[neighbor.x_][neighbor.y_] == opponent))
 			if (GetLiberties(neighbor, 1) == 0)
 				st.push(neighbor);
@@ -376,7 +382,7 @@ Move GohAI::GetBestMove(long milliseconds, char color) {
 		MontecarloAlgorithm(color);
 	}
 
-	if(tree_search_->children_.size() > 0) {
+	if(tree_search_->children_.size() == 0) {
 		return NULL;
 	}
 
@@ -389,11 +395,20 @@ Move GohAI::GetBestMove(long milliseconds, char color) {
 			score = static_cast<float>(tree_search_->children_[i]->winCounter_);
 		}
 	}
-	return tree_search_->moves_[best];
+	Move ret = tree_search_->moves_[best];
+	tree_search_ = tree_search_->children_[best];
+	Play(ret, color);
+	return ret;
 }
 
 void GohAI::MontecarloAlgorithm(char root_color) {
 	char color = root_color;
+
+	auto backup_hash_history_ = hash_history_;
+	auto backup_hash_ = hash_;
+	auto backup_moves_ = moves_;
+	auto backup_goban_ = goban_;
+
 	//Selection
 	Node& selected = Select(*tree_search_, color);
 	//Expansion
@@ -402,6 +417,12 @@ void GohAI::MontecarloAlgorithm(char root_color) {
 	Simulate(expanded, color);
 	//Backpropaging
 	BackPropage(expanded);
+
+	// Restore old values
+	goban_ = backup_goban_;
+	moves_ = backup_moves_;
+	hash_ = backup_hash_;
+	hash_history_ = backup_hash_history_;
 }
 
 Node& GohAI::Select(Node& root, char& color) {
@@ -409,14 +430,14 @@ Node& GohAI::Select(Node& root, char& color) {
 	//Remember the position within the kodomo to update the goban with the good move 
 	while(!best->isLeaf()) {
 		int best_index;
-		float max = -50.0f, score;
+		float max = -50000.0f, score;
 		for(int i=0, lg=best->children_.size(); i<lg; ++i) {
-			if(best->children_[i]->playCounter_==0) {
+			if(best->children_[i]->playCounter_==0) 
 				return *(best->children_[i]);
-			}
-			else
+
 			score = (static_cast<float>(best->children_[i]->winCounter_) / best->children_[i]->playCounter_)
 					+ C * sqrt(log((float)root.playCounter_) / best->children_[i]->playCounter_);
+
 			if(score > max) {
 				max = score;
 				best_index=i;
@@ -425,7 +446,7 @@ Node& GohAI::Select(Node& root, char& color) {
 		//update the gohan according to the color
 		best = best->children_[best_index];
 		ChangeColor(color);
-		Play(best->moves_[best_index], color);
+		Play(best->parent_->moves_[best_index], color);
 	}
 	return *best;
 }
@@ -487,5 +508,25 @@ void GohAI::BackPropage(Node& node) {
 		current = current->parent_;
 		current->winCounter_ += win;
 		current->playCounter_ += play;
+	}
+}
+
+void GohAI::DisplayGoban() {
+	std::cout << "Goban:\n";
+	for (int i = 0; i < WIDTH; ++i) {
+		for (int j = 0; j < WIDTH; ++j) {
+			switch(goban_[i][j]) {
+			case Vide: 
+				std::cout << "-";
+				break;
+			case Blanc: 
+				std::cout << "B";
+				break;
+			case Noir: 
+				std::cout << "N";
+				break;
+			}
+		}
+		std::cout << "\n";
 	}
 }

@@ -1,10 +1,12 @@
 #ifndef GOHAI
 #define GOHAI
 
+#include <iostream>
 #include <vector>
 #include <stack>
 #include "Move.h"
 #include "Node.h"
+
 
 using namespace std;
 
@@ -18,7 +20,6 @@ const int WIDTH = 9;
 const float C = 0.3;
 
 const unsigned long long HASH_TURN = 9349610587725488279;
-
 enum State { Noir = 0, Blanc = 1, Vide = 2 };
 
 class GohAI {
@@ -55,6 +56,7 @@ public:
 	Move NextMove(char color);
 	Move NextMove2(char color);
 	unsigned long long Hash(Move move, char color);
+	void DisplayGoban();
 
 	//Changes the color in parameter from Blanc to Noir and Noir to Blanc
 	inline void ChangeColor(char& color) { color = (color == Noir ? Blanc : Noir); }
