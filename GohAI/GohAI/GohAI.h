@@ -34,7 +34,6 @@ public:
 	vector<vector<char>> goban_;
 	//The moves performed from the beginning
 	vector<Move> moves_;
-	int play_counter_;
 
 	//The tree
 	Node *tree_search_;
@@ -83,6 +82,10 @@ public:
 	Move NextMove2(char color);
 	//Returns the hash after performing a specific move
 	unsigned long long Hash(Move move, char color);
+	// Rellocates the root of the tree_search_
+	void ReallocateRoot(Move move);
+
+
 	void DisplayGoban();
 
 	//Changes the color in parameter from Blanc to Noir and Noir to Blanc

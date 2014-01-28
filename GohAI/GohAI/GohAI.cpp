@@ -1,7 +1,7 @@
 #include "GohAI.h"
 #include <time.h>
 
-GohAI::GohAI() : hash_(0), play_counter_(0) {
+GohAI::GohAI() : hash_(0ull) {
 	//srand(time(NULL));
 	for(int i = 0; i < WIDTH; ++i) {
 		vector<char> tmp;
@@ -10,7 +10,7 @@ GohAI::GohAI() : hash_(0), play_counter_(0) {
 		goban_.push_back(tmp);
 	}
 
-	tree_search_ = new Node();
+	tree_search_ = new Node(NULL, Move());
 }
 
 GohAI::~GohAI () {
@@ -387,18 +387,19 @@ Move GohAI::GetBestMove(long milliseconds, char color) {
 	}
 
 	//Retrieve the answer
-	float score = (static_cast<float>(tree_search_->children_[0]->winCounter_));
+	float score = 0, candidate;
 	int best=0;
-	for(int i=1, lg=tree_search_->children_.size(); i<lg; ++i) {
-		if(score < static_cast<float>(tree_search_->children_[i]->winCounter_)) {
+	for(int i=0, lg=tree_search_->children_.size(); i<lg; ++i) {
+		if(tree_search_->children_[i]->playCounter_ == 0)
+			continue;
+		candidate = tree_search_->children_[i]->winCounter_ / tree_search_->children_[i]->playCounter_;
+		if(score < candidate) {
 			best = i;
-			score = static_cast<float>(tree_search_->children_[i]->winCounter_);
+			score = candidate;
 		}
 	}
-	Move ret = tree_search_->moves_[best];
-	tree_search_ = tree_search_->children_[best];
-	Play(ret, color);
-	return ret;
+
+	return tree_search_->children_[best]->move_;
 }
 
 void GohAI::MontecarloAlgorithm(char root_color) {
@@ -446,7 +447,7 @@ Node& GohAI::Select(Node& root, char& color) {
 		//update the gohan according to the color
 		best = best->children_[best_index];
 		ChangeColor(color);
-		Play(best->parent_->moves_[best_index], color);
+		Play(best->move_, color);
 	}
 	return *best;
 }
@@ -460,8 +461,7 @@ Node& GohAI::Expand(Node& node, char& color) {
 			inter.x_ = i;
 			inter.y_ = j;
 			if(isLegalMove(inter, color)) {
-				node.moves_.push_back(inter);
-				Node* n = new Node(&node);
+				Node* n = new Node(&node, inter);
 				node.children_.push_back(n);
 			}
 		}
@@ -508,6 +508,15 @@ void GohAI::BackPropage(Node& node) {
 		current = current->parent_;
 		current->winCounter_ += win;
 		current->playCounter_ += play;
+	}
+}
+void GohAI::ReallocateRoot(Move move) {
+	// TODO free memory
+	for(auto it = tree_search_->children_.begin(); it != tree_search_->children_.end(); ++it) {
+		if((*it)->move_ == move) {
+			tree_search_ = *it;
+			break;
+		}
 	}
 }
 

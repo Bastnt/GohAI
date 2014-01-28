@@ -44,10 +44,14 @@ int main() {
 	cout << "time: " << (clock() - start) << endl;*/
 	while(true) {
 		m = ia.GetBestMove(15000, Noir);
+		ia.Play(m, Noir);
+		ia.ReallocateRoot(m);
+
 		cout << "result: " << (int)m.x_ << "," << (int)m.y_ << endl;
 		ia.DisplayGoban();
 		scanf("%d %d", &a, &b);
 		ia.Play(Move(a,b), Blanc);
+		ia.ReallocateRoot(Move(a,b));
 		cout << endl;
 		ia.DisplayGoban();
 	}
