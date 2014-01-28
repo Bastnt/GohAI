@@ -55,7 +55,8 @@ bool GohAI::isLegalMove(Move move, char color) {
 	}
 
 	unsigned long long h = Hash(move, color);
-	for (vector<unsigned long long>::iterator it = hash_history_.end(); it != hash_history_.begin(); --it)
+	//We start from the end because it is more likely to occur
+	for (auto it = hash_history_.end()-1; it != hash_history_.begin(); --it)
 		if (*it == h)
 			return false;
 
@@ -68,9 +69,7 @@ bool GohAI::isLegalMove(Move move, char color) {
 
 unsigned long long GohAI::Hash(Move move, char color) {
 	unsigned long long h = hash_;
-	int opponent = Noir;
-	if (color == Noir)
-		opponent = Blanc;
+	int opponent = color == Noir ? Noir : Blanc;
 
 	static bool remember[WIDTH][WIDTH] = {0};
 
@@ -86,6 +85,7 @@ unsigned long long GohAI::Hash(Move move, char color) {
 					stack<Move> st;
 					remember[neighbor.x_][neighbor.y_] = 1;
 					st.push (neighbor);
+
 					while (!st.empty ()) {
 						position = st.top ();
 						st.pop();
@@ -141,10 +141,10 @@ void GohAI::Play(Move move, char color) {
 	moves_.push_back(move);
 	hash_ ^= HASH_TURN;
 
-	// If you do not pass our turn
+	// If we do not pass our turn
 	if (move.x_ != -1) {
 		PutStone(move, color);
-		RemovePrisonners(move, color);
+		RemovePrisoners(move, color);
 	}
 }
 
@@ -162,7 +162,7 @@ void GohAI::PutStone(Move move, char color) {
 	hash_ ^= hash_array_[color][move.x_][move.y_];
 }
 
-void GohAI::RemovePrisonners(Move move, char color) {
+void GohAI::RemovePrisoners(Move move, char color) {
 	stack<Move> st;
 	Move neighbor;
 	int opponent = (color == Noir ? Blanc : Noir);
