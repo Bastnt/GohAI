@@ -1,12 +1,16 @@
 #include "GohAI.h"
 #include <time.h>
 
+const Move GohAI::STARTING_MOVES[] = {Move(2,2),Move(2,3),Move(2,4),Move(2,5),Move(2,6),
+									Move(3,2),Move(3,3),Move(3,4),Move(3,5),Move(3,6),
+									Move(4,2),Move(4,3),Move(4,4),Move(4,5),Move(4,6),
+									Move(5,2),Move(5,3),Move(5,4),Move(5,5),Move(5,6),
+									Move(6,2),Move(6,3),Move(6,4),Move(6,5),Move(6,6)};
+
 GohAI::GohAI() : hash_(0ull) {
 	//srand(time(NULL));
 	for(int i = 0; i < WIDTH; ++i) {
-		vector<char> tmp;
-		tmp.resize(WIDTH);
-		fill(tmp.begin(), tmp.end(), Vide);
+		std::vector<char> tmp (WIDTH,Vide);
 		goban_.push_back(tmp);
 	}
 
@@ -327,9 +331,8 @@ Move GohAI::NextMove2(char color) {
 						move.y_ = j;
 					}
 				}
-
-				nbUrgences -= urgence[move.x_][move.y_];
-				urgence[move.x_][move.y_] = 0;
+		nbUrgences -= urgence[move.x_][move.y_];
+		urgence[move.x_][move.y_] = 0;
 	}
 	while (isSurrounded(move, color) || 
 		!isLegalMove(move, color));
@@ -338,18 +341,25 @@ Move GohAI::NextMove2(char color) {
 }
 
 Move GohAI::NextMove(char color) {
+	Move move;
+	if(moves_.size() < 4) {
+		//AD HOC implementation
+		do {
+			move = STARTING_MOVES[rand() % 25];
+		} while(goban_[move.x_][move.y_] != Vide);
+	}
+
 	unsigned char nbUrgences = 0;
 	bool urgence[WIDTH][WIDTH];
-	Move move;
 
 	for (int i = 0; i < WIDTH; ++i)
 		for (int j = 0; j < WIDTH; ++j)
 			if (goban_[i][j] == Vide) {
-				urgence[i][j] = 1;
+				urgence[i][j] = true;
 				++nbUrgences;
 			}
 			else
-				urgence[i][j] = 0;
+				urgence[i][j] = false;
 
 	do {
 		if (nbUrgences == 0)
@@ -358,7 +368,7 @@ Move GohAI::NextMove(char color) {
 		int somme = 0;
 		for (int i = 0; ((i < WIDTH) && (somme <= index)); ++i)
 			for (int j = 0; j < WIDTH; ++j)
-				if (urgence[i][j] == 1) {
+				if (urgence[i][j]) {
 					++somme;
 					if (somme > index) {
 						move.x_ = i;
