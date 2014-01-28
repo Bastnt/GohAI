@@ -12,40 +12,39 @@
 #include "Marquage.h"
 #include "Node.h"
 //Bonus points for the player who does not start
-const float KOMI = 7.5;
-
-const int WIDTH = Taille + 2;
+const char KOMI = 7;
 
 const short PLAYOUTS = 5;
 
+const int WIDTH = 9;
+
 //Used in the selection algorithm within the MCTS
-const int C = 0.3;
+const float C = 0.3;
 
-enum Case { Noir = 0, Blanc = 1, Vide = 2, Exterieur = 3 };
+enum Case { Noir = 0, Blanc = 1, Vide = 2 };
 
-const int MaxCoups = 300;
-
+enum BM { select, expand, simulate, backpropage, playouts };
 
 class Go {
 public:
-	Marquage* dejavu, *dejavu2;
+	int Mmc;
+	long Mbm[5];
+	Marquage *dejavu, *dejavu2;
 	unsigned long long HashArray[2][WIDTH][WIDTH];
 	unsigned long long HashTurn;
-	char* goban;
+	vector<vector<char>> goban;
 	int nbCoupsJoues;
-	Intersection moves [MaxCoups];
+	vector<Intersection> moves;
 	unsigned long long hash;
-	unsigned long long HashHistory [MaxCoups];
-	float score [2];
+	vector<unsigned long long> HashHistory;
+	unsigned char score [2];
 
 	//Save states attributes
-	char* save_goban;
+	vector<vector<char>> save_goban;
 	int save_nbCoupsJoues;
 	unsigned long long save_hash;
-	Marquage* save_dejavu, * save_dejavu2;
+	Marquage *save_dejavu, *save_dejavu2;
 
-
-	const static float C;
 	//Represents the current knowledge of the montecarlo algorithm on the goban
 	Node* root_;
 
@@ -65,6 +64,7 @@ public:
 	bool protegee (Intersection inter, int couleur, bool & bord);
 	bool oeil (Intersection inter, int couleur);
 	//Allow us to calculate the score of a goban
+	bool IsOut(Intersection i);
 	void calculeScores ();
 	bool gameOver ();
 	Intersection choisirUnCoup (int couleur);
@@ -97,7 +97,7 @@ public:
 	void RestoreState();
 
 	//The best move to perform after processing MCTS for the provided amount of time
-	Intersection GetBestMove(long seconds, int color);
+	Intersection GetBestMove(long milliseconds, int color);
 	
 };
 

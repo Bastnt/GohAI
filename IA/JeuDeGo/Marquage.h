@@ -2,12 +2,11 @@
 #define MARQUAGE_H
 
 #include "Intersection.h"
-
-const int Taille = 9;
+#include "Go.h"
 
 class Marquage {
 	unsigned long long _marqueur;
-	unsigned long long _marquee [Taille + 2] [Taille + 2];
+	unsigned long long _marquee [WIDTH] [WIDTH];
 
 public:
 	Marquage ();

@@ -1,6 +1,6 @@
 #include "Intersection.h"
 
-Intersection::Intersection (int x, int y) : x_(x), y_(y) {}
+Intersection::Intersection (char x, char y) : x_(x), y_(y) {}
 
 Intersection Intersection::voisine (int indice) {
 	if (indice == 0) return Intersection (x_ - 1, y_);

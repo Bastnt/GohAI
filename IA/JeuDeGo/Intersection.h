@@ -3,9 +3,9 @@
 
 class Intersection {
 public :
-	int x_, y_;
+	char x_, y_;
 
-	Intersection(int x = 0, int y = 0);
+	Intersection(char x = 0, char y = 0);
 
 	Intersection voisine(int indice);
 
