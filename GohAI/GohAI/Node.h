@@ -1,8 +1,7 @@
 #ifndef NODE_H
 #define NODE_H
 
-#include "Intersection.h"
-#include "Marquage.h"
+#include "Move.h"
 #include <vector>
 
 using namespace std;
@@ -16,15 +15,13 @@ class Node {
 		//The parent of the current node, NULL if the root
 		Node* parent_;
 		//The list of moves that lead to the children Nodes
-		vector<Intersection> moves_;
+		vector<Move> moves_;
 		//The list of children Nodes
-		vector<Node*> kodomo_;
-		unsigned long long hash_;
+		vector<Node*> children_;
 
 		Node(Node* parent = NULL);
 		Node(const Node & n);
 
-		void becomeRoot();
 		bool isRoot();
 		bool isLeaf();
 };

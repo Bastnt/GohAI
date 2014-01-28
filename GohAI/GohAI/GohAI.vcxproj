@@ -11,9 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{F75C3A79-FBE2-4185-94C2-7F6066666884}</ProjectGuid>
+    <ProjectGuid>{516A19DB-DF84-4849-9C58-136DCB18595A}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>JeuDeGo</RootNamespace>
+    <RootNamespace>GohAI</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -76,16 +76,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Go.cpp" />
-    <ClCompile Include="Intersection.cpp" />
+    <ClCompile Include="GohAI.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Marquage.cpp" />
+    <ClCompile Include="Move.cpp" />
     <ClCompile Include="Node.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Go.h" />
-    <ClInclude Include="Intersection.h" />
-    <ClInclude Include="Marquage.h" />
+    <ClInclude Include="GohAI.h" />
+    <ClInclude Include="Move.h" />
     <ClInclude Include="Node.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
