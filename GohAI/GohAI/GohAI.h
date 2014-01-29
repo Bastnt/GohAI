@@ -35,6 +35,8 @@ public:
 	//The moves performed from the beginning
 	vector<Move> moves_;
 
+	static const Move STARTING_MOVES[25];
+
 	//The tree
 	Node *tree_search_;
 
