@@ -13,11 +13,11 @@ using namespace std;
 //Bonus points for the player who does not start (7.5 in fact)
 const char KOMI = 7;
 //Number of random plays in simulate
-const short PLAYOUTS = 5;
+const short PLAYOUTS = 8;
 //Board size
 const int WIDTH = 9;
 //Used in the selection algorithm within the MCTS
-const float C = 0.3;
+const float C = 0.6f;
 
 //The unique value representing a turn shift
 const unsigned long long HASH_TURN = 9349610587725488279;
@@ -34,8 +34,6 @@ public:
 	vector<vector<char>> goban_;
 	//The moves performed from the beginning
 	vector<Move> moves_;
-
-	static const Move STARTING_MOVES[25];
 
 	//The tree
 	Node *tree_search_;
@@ -99,7 +97,7 @@ public:
 	//Performs the expansion within the MCTS, increases the number of considered Nodes
 	Node* Expand(Node* node, char& color);
 	//Performs the simulation within the MCTS, randomly plays until an end of game position
-	void Simulate(Node* node, char color);
+	void Simulate(Node* node, char starting_color, char player);
 	//Performs the backpropagation within the MCTS, updates the parents Nodes
 	void BackPropage(Node* node);
 	//Does the main job
