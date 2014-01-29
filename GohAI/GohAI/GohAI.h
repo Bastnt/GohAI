@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <vector>
-#include <stack>
+#include <time.h>
 #include "Move.h"
 #include "Node.h"
 
@@ -93,13 +93,13 @@ public:
 	
 	/*Performs the selection within the MCTS, selecting the best Node at the moment, 
 	also updates the goban to be in the good state*/
-	Node& Select(Node& root, char& color);
+	Node* Select(Node* root, char& color);
 	//Performs the expansion within the MCTS, increases the number of considered Nodes
-	Node& Expand(Node& node, char& color);
+	Node* Expand(Node* node, char& color);
 	//Performs the simulation within the MCTS, randomly plays until an end of game position
-	void Simulate(Node& node, char color);
+	void Simulate(Node* node, char color);
 	//Performs the backpropagation within the MCTS, updates the parents Nodes
-	void BackPropage(Node& node);
+	void BackPropage(Node* node);
 	//Does the main job
 	void MontecarloAlgorithm(char color);
 	//Returns the best move to perform, for the provided color, after running the algorithm the provided amount of time

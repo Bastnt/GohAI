@@ -35,7 +35,6 @@ int main() {
 	ia.goban_[6][4] = Noir;
 	ia.goban_[6][6] = Noir;*/
 
-	ia.DisplayGoban();
 	Move m;
 	int a,b;
 	/*clock_t start = clock();
@@ -43,16 +42,17 @@ int main() {
 		m = ia.NextMove(Blanc);
 	cout << "time: " << (clock() - start) << endl;*/
 	while(true) {
-		m = ia.GetBestMove(15000, Noir);
+		m = ia.GetBestMove(5000, Noir);
 		ia.Play(m, Noir);
 		ia.ReallocateRoot(m);
 
-		cout << "result: " << (int)m.x_ << "," << (int)m.y_ << endl;
+		cout << "Noir: " << (int)m.x_ << "," << (int)m.y_ << endl;
 		ia.DisplayGoban();
-		scanf("%d %d", &a, &b);
-		ia.Play(Move(a,b), Blanc);
-		ia.ReallocateRoot(Move(a,b));
-		cout << endl;
+		//scanf("%d %d", &a, &b);
+		m = ia.GetBestMove(6000, Blanc);
+		ia.Play(m, Blanc);
+		ia.ReallocateRoot(m);
+		cout << "Blanc: " << (int)m.x_ << "," << (int)m.y_ << endl;
 		ia.DisplayGoban();
 	}
 
